@@ -67,7 +67,9 @@ namespace dotnet_rpg.Services.CharacterService
 
         public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacter()
         {
-            List<Character> dbCharater = await _context.Characters.Where(c => c.User.Id == GetUserId()).ToListAsync();
+            List<Character> dbCharater = GetUserRole().Equals("Admin") ?
+            await _context.Characters.ToListAsync() :
+            await _context.Characters.Where(c => c.User.Id == GetUserId()).ToListAsync();
             return new ServiceResponse<List<GetCharacterDto>>()
             {
                 Data = dbCharater.Select(character => _mapper.Map<GetCharacterDto>(character)).ToList()
@@ -121,5 +123,7 @@ namespace dotnet_rpg.Services.CharacterService
         }
 
         private int GetUserId() => int.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+        private string GetUserRole() => _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
     }
 }
