@@ -30,7 +30,7 @@ namespace dotnet_rpg.Data
                 serviceResponse.Success = false;
                 serviceResponse.Message = "User not found";
             }
-            else if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
+            else if (!Utility.VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
             {
                 serviceResponse.Success = false;
                 serviceResponse.Message = "Wrong password";
@@ -62,23 +62,8 @@ namespace dotnet_rpg.Data
             return serviceResponse;
         }
 
-        public async Task<bool> UserExists(string username) => (await _context.Users.AnyAsync(u => u.Username.ToLower() == username.ToLower())) ? true : false;
-
-        private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
-        {
-            using (var hmac = new System.Security.Cryptography.HMACSHA512(passwordSalt))
-            {
-                var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-                for (int i = 0; i < computedHash.Length; i++)
-                {
-                    if (computedHash[i] != passwordHash[i])
-                    {
-                        return false;
-                    }
-                }
-                return true;
-            }
-        }
+        public async Task<bool> UserExists(string username) =>
+            (await _context.Users.AnyAsync(u => u.Username.ToLower() == username.ToLower())) ? true : false;
 
         private string CreateToken(User user)
         {
